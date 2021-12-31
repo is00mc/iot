@@ -1,7 +1,7 @@
 import argparse
 from os import error
 import lg
-from termAttributes import TermAttributes
+from termAttributes import TermAttributes # in parent directory may need to update import statement
 
 devices = []
 numErrors = 0

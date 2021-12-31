@@ -1,4 +1,4 @@
-from command import Command
+from command import Command # in parent directory may need to update import statement
 
 
 class LG(Command):
