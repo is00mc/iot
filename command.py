@@ -1,5 +1,6 @@
+import serial
 import socket
-
+import time
 
 class Command:
 
@@ -19,7 +20,7 @@ class Command:
         self.commands.append(self.attr)
 
 
-    def send(self, server, command, port, buffer=1024):
+    def send_socket(self, server, command, port, buffer=1024):
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
@@ -29,6 +30,27 @@ class Command:
 
         return response
 
+
+    def send_serial(comPort, command, baudRate, parity, stopBit, byteSize, wait):
+
+        ser = serial.Serial(
+        port=comPort,
+        baudrate=baudRate,
+        parity=serial.PARITY_SPACE, # figure out how to pass these as arguments
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.SEVENBITS
+        )
+
+        ser.isOpen()
+        ser.write(command)
+        time.sleep(wait)
+
+    
+        out = b''
+        while ser.inWaiting() > 0:
+            out += ser.read(1)
+        
+        return out.decode()
 
     def getDescription(self):
         return self.description
