@@ -352,3 +352,5 @@ def scanInversionFrameControl():
         send_command(i, SCAN_INVERSION_ON, PORT)
     for i in TCC_ODD_ROWS:
         send_command(i, FRAME_CONTROL_ON, PORT)
+
+send_command('169.254.248.221', POWER_OFF, PORT)
