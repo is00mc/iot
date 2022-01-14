@@ -1,17 +1,63 @@
-# TODO
-# test date command
-
-import csv
-import datetime
-import os
+import argparse
+from itertools import count
 import socket
 import time
+from timeit import repeat
+
+'''
+FACTORY RESET SEQUENCE
+
+MENU
+DOWN X 3
+OK
+DOWN X 3
+1 X 6
+0
+RIGHT
+OK
+'''
+
+'''
+SETUP SEQUENCE
+
+OK X 5
+RIGHT X 2
+DOWN
+RIGHT
+DOWN X 3
+OK
+169
+OK
+254
+OK
+100
+OK
+5 - HAVE SERVER ADDRESS AS FUNCTION PARAMETER
+OK
+80
+OK
+OK
+WAIT FOR USER INPUT?
+LEFT
+OK
+'''
 
 
-CWD = os.getcwd()
-HOSTSCSVHEADERS = ["MACAddress", "IPAddress", "HostName", "something"]
-PATH_TO_HOSTS = os.path.join(CWD, "..\\python_dhcp_server\\server\\hosts.csv")
-PATH_TO_CONFIG = "LG.csv"
+parser = argparse.ArgumentParser()
+parser.add_argument('-u', action='store_true')
+parser.add_argument('-d', action='store_true')
+parser.add_argument('-l', action='store_true')
+parser.add_argument('-r', action='store_true')
+parser.add_argument('-ok', action='store_true')
+parser.add_argument('-mn', action='store_true')
+parser.add_argument('-num')
+parser.add_argument('-dev', help='device ip')
+
+args = parser.parse_args()
+
+dev = args.dev
+
+
 
 PORT = 9761
 POWER_ON = 'ka 01 01\r'
@@ -34,219 +80,50 @@ SCAN_INVERSION_ON = 'sn 01 87 01\r'
 SCAN_INVERSION_OFF = 'sn 01 87 00\r'
 FRAME_CONTROL_ON = 'sn 01 b7 01\r'
 FRAME_CONTROL_OFF = 'sn 01 b7 00\r'
+UP = 'mc 01 40\r'
+DOWN = 'mc 01 41\r'
+LEFT = 'mc 01 07\r'
+RIGHT = 'mc 01 06\r'
+OK = 'mc 01 44\r'
+MENU = 'mc 01 43\r'
 
 
 
-SUBNET = '255255255000'
-GATEWAY = '192168001001'
+def numCMD(data):
+    num = data + 10
+    return f'mc 01 {num}\r'
+
+ZERO = numCMD(0)
+ONE = numCMD(1)
+TWO = numCMD(2)
+THREE = numCMD(3)
+FOUR = numCMD(4)
+FIVE = numCMD(5)
+SIX = numCMD(6)
+SEVEN = numCMD(7)
+EIGHT = numCMD(8)
+NINE = numCMD(9)
 
 
-
-
-def formatIP(ip):
-    octets = ip.split('.')
-    formattedIPList = []
-    formattedIP = ''
-    for i in octets:
-        if int(i) < 10:
-            i = '00' + i
-        elif int(i) < 100:
-            i = '0' + i
-        formattedIPList.append(i)
-    formattedIP = ''.join(formattedIPList)
-    return formattedIP
-
-def getTime():
-    return datetime.datetime.now()
-
-
-def set_time_hms():
-    print(getTime().hour)
-    exit()
-    hr = format(getTime().hour, 'x')
-    print(hr)
-    mn = format(getTime().minute, 'x')
-    print(mn)
-    s = format(getTime().second, 'x')
-    print(s)
-    return f'fx 01 {hr} {mn} {s}\r'
-
-
-def changIPAddress(ip, subnet, gateway):
-    ip = formatIP(ip)
-    subnet = formatIP(subnet)
-    gateway = formatIP(gateway)
-    return(f'sn 01 80 01 {ip} {subnet} {gateway}\r')
-
-def setDNS(dns):
-    dns = formatIP(dns)
-    return(f'sn 01 81 {dns}\r')
-
-TILE2X2 = {
-    '60': '10',
-    '61': '20',
-    '62': '10',
-    '63': '20',
-    '64': '30',
-    '65': '40',
-    '66': '30',
-    '67': '40'
-    }
-
-TILEFULL = {
-    '52': '10',
-    '53': '20',
-    '54': '30',
-    '55': '40',
-    '56': '50',
-    '57': '60',
-    '58': '70',
-    '59': '80',
-    '60': '90',
-    '61': 'A0',
-    '62': 'B0',
-    '63': 'C0'
-    }
-
-INPUT2X2 = ['56', '57', '60', '61', '62', '63']
-
-
-VIDEOWALL = [
-    '10.228.35.52',
-    '10.228.35.53',
-    '10.228.35.54',
-    '10.228.35.55',
-    '10.228.35.56',
-    '10.228.35.57',
-    '10.228.35.58',
-    '10.228.35.59',
-    '10.228.35.60',
-    '10.228.35.61',
-    '10.228.35.62',
-    '10.228.35.63'
+resetSequence = [
+    # [cmd, number of times to send command, wait time in seconds before next command]
+    [MENU, 1, 1], # open menu
+    [DOWN, 3, 1], # go down to advanced menu
+    [OK, 1, 5], # enter advanced menu and wait 5 seconds for it to popup
+    [DOWN, 3, 1], # go down to general
+    [ONE, 5, .5], # press 1 5 times quickly
+    [ONE, 1, 2], # press 1 a last time and wait for the hidden page to popup
+    [ZERO, 1, 2], # press zero for in stop
+    [RIGHT, 1, 1], # go right to say yes to confirmation
+    [OK, 1, 0] # press ok to confirm in stop
 ]
 
-TVS = [
-    '10.228.37.63',
-    '10.228.37.64',
-    '10.228.37.65',
-    '10.228.37.66',
-    '10.228.37.67',
-    '10.228.37.68',
-    '10.228.37.69',
-    '10.228.37.70',
-    '10.228.37.71',
-    '10.228.37.72',
-    '10.228.37.73',
-    '10.228.37.74',
-    '10.228.37.75'
+initialSetupSequence = [
+    # (cmd, wait time in seconds before next command)
+    (MENU, 1),
 ]
 
 
-TCC_EVEN_ROWS = [
-    '10.228.35.53',
-    '10.228.35.55',
-    '10.228.35.57',
-    '10.228.35.59',
-    '10.228.35.61',
-    '10.228.35.63'
-]
-
-TCC_ODD_ROWS = [
-    '10.228.35.52',
-    '10.228.35.54',
-    '10.228.35.56',
-    '10.228.35.58',
-    '10.228.35.60',
-    '10.228.35.62'
-]
-
-#-----csv shit------------------
-
-def csvToDicts(path): # used
-    """
-    Iterates through a csv file with an arbitrary number of columns and creates a list of dictionaries
-    where the key is the column name and the value is the corresponding value for that column in that row.
-    The csv file is passed as the PATH parameter.
-    returns the list of dictionaries
-    """
-    headers = [] # initialize a list for the header
-    list = [] # initialize a list for the rows in the csv file. Indices are dictionaries with the rows contents
-    with open(path, ) as csvfile:
-        reader = csv.reader(csvfile)
-        row_count = 0
-        for row in reader: # iterates through the rows in the csv file
-            if row_count == 0: # checks if the current row is the header row
-                for i in row:
-                    headers.append(i) # appends the list with header names
-                row_count += 1
-            else:
-                dict = {} # initializes a dictionary to hold the contents of the csv row
-                column_count = 0
-                for i in row: # iterates through the columns of the current row
-                    dict[headers[column_count]] = row[column_count] # appends the dictionary with the header of the column and the value of the associated column in this row
-                    column_count += 1
-                list.append(dict) # appends this row dictionary to the list of rows
-                row_count += 1
-    if not list:
-        list = headers
-    return list # returns the csv file as a list of dictionaries of the rows contents
-
-def csvToDictsAppendHeader(path, headerList):
-    headers = headerList
-    list = [] # initialize a list for the rows in the csv file. Indices are dictionaries with the rows contents
-    with open(path, ) as csvfile:
-        reader = csv.reader(csvfile, delimiter=";")
-        row_count = 0
-        for row in reader: # iterates through the rows in the csv file
-            dict = {} # initializes a dictionary to hold the contents of the csv row
-            column_count = 0
-            for i in row: # iterates through the columns of the current row
-                dict[headers[column_count]] = row[column_count] # appends the dictionary with the header of the column and the value of the associated column in this row
-                column_count += 1
-            list.append(dict) # appends this row dictionary to the list of rows
-            row_count += 1
-    if not list:
-        list = headers
-    return list # returns the csv file as a list of dictionaries of the rows contents
-
-def compareCSVs(path1, path2):
-    dict1 = csvToDicts(path1)
-    dict2 = csvToDictsAppendHeader(path2, HOSTSCSVHEADERS)
-
-    for i in dict2:
-        for k, v in i.items():
-            if k == "IPAddress":
-                print(f"OK IP {v}")
-                IPAddress = v
-            if k == "MACAddress":
-                print(f"OK MAC {v}")
-                MACAddress = v
-
-            
-        serialNumber = getSerial(IPAddress)
-
-        for g in dict1:
-            for k, v in g.items():
-                if k == "SerialNumber":
-                    print(f"OK SERIAL {v}")
-                    if v == serialNumber:
-                        print("Adding IP and MAC")
-                        g["IPAddress"] = IPAddress
-                        g["MACAddress"] = MACAddress
-
-    return dict1
-
-
-def writeCSVFromDictList(path, dictList):
-    dictionaries = dictList
-    keys = dictionaries[0].keys()
-
-    a_file = open(path, "w")
-    dict_writer = csv.DictWriter(a_file, keys)
-    dict_writer.writeheader()
-    dict_writer.writerows(dictionaries)
-    a_file.close()
 
 #------------Commands--------------------------------------
 
@@ -263,94 +140,31 @@ def send_command(dev, command, port):
         return data.decode()
 
 
-def parseSerial(data):
-    data = data.strip('y 01 ')
-    if data.startswith("OK"):
-        data = data.strip("OK")
-    elif data.startswith("NG"):
-        data = data.strip("NG")
-    else:
-        print('error with return code OK/NG')
-    return data.rstrip(data[-1])
+def commandSequence(dev, sequence, port=PORT):
+    for items in sequence:
+        cmd = items[0]
+        repeatTimes = items[1]
+        waitTime = items[2]
+        count = 1
+        while count <= repeatTimes:
+            #print(items[0])
+            send_command(dev, cmd, port)
+            time.sleep(waitTime)
+            count += 1
 
+if args.u:
+    cmd = UP
+elif args.d:
+    cmd = DOWN
+elif args.l:
+    cmd = LEFT
+elif args.r:
+    cmd = RIGHT
+elif args.ok:
+    cmd = OK
+elif args.mn:
+    cmd = MENU
+elif args.num:
+    cmd = numCMD(args.num)
 
-def getSerial(ip):
-    return parseSerial(send_command(ip, 'fy 01 ff\r', PORT))
-
-
-def fullScreen(func):
-
-    for i in range(52, 68):
-        if i == 52:
-            input = INPUT_HDMI
-        else:
-            input = INPUT_DP
-        for k, v in TILEFULL.items():
-            if str(i) == k:
-                x = v
-                
-                tilecmd = f'di 01 {x}'
-        dev = f'10.228.37.{i}'
-        send_command(dev, input, PORT)
-        send_command(dev, VWFULL, PORT)
-        send_command(dev, tilecmd, PORT)
-    func()
-
-
-def twoXtwo():
-    for i in range(52, 63):
-        for k, v in TILE2X2.items():
-            if str(i) == k:
-                x = v
-                
-                tilecmd = f'di 01 {x}'
-                dev = f'10.228.37.{i}'
-                if str(i) in INPUT2X2:
-                    input = INPUT_HDMI
-                else:
-                    input = INPUT_DP
-                send_command(dev, input, PORT)
-                send_command(dev, VW2X2, PORT)
-                send_command(dev, tilecmd, PORT)
-                    
-def sendAll(cmd):
-    if cmd == POWER_OFF:
-        videowall = reversed(VIDEOWALL)
-        sleep = 0
-    else:
-        videowall = VIDEOWALL
-        sleep = 3
-    #for dev in videowall:
-    #    send_command(dev, cmd, PORT)
-    #    time.sleep(sleep)
-    for i in TVS:
-        send_command(i, cmd, PORT)
-
-def configureDevs(pathToConfig):
-
-    devs = csvToDicts(pathToConfig)
-    
-    for dev in devs:
-        for k, v in dev.items():
-            if k == "IPAddress":
-                d = v
-            if k == "NewIPAddress":
-                ip = v
-            if k == "Subnet":
-                subnet = v
-            if k == "Gateway":
-                gateway = v
-
-        #commands = [SET_TIME_AUTO, NO_SIGNAL_POWER_OFF_OFF, DPM_STANDBY_MODE_OFF, PM_NETWORK_READY, LAN_DAISEY_CHAIN_ON]
-        commands = [INPUT_DP]
-        for command in commands:
-            if d != "10.228.37.55" or "10.228.37.57":
-                print(send_command(d, command, PORT))
-
-def scanInversionFrameControl():
-    for i in TCC_EVEN_ROWS:
-        send_command(i, SCAN_INVERSION_ON, PORT)
-    for i in TCC_ODD_ROWS:
-        send_command(i, FRAME_CONTROL_ON, PORT)
-
-send_command('169.254.248.221', POWER_OFF, PORT)
+commandSequence(dev, resetSequence)
