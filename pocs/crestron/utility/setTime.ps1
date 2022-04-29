@@ -8,9 +8,9 @@ import-module PSCrestron
 
 
 $time = $args[0]
-$dev = ''
-$username = ''
-$password = ''
+$dev = $args[1]
+$username = $args[2]
+$password = $args[3]
 
 
 function send-cmd {
@@ -33,6 +33,10 @@ elseif ($time -eq '-n') {
 elseif ($time -eq '-g') {
     send-cmd -cmd 'time'
 }
+elseif ($time -eq "-s") {
+    $t = Get-Date -Format "HH:mm:ss MM-dd-yyyy"
+    send-cmd -cmd "time $t"
+}
 else {
     Write-Host Usage:
     Write-Host '    -wd = weekday (12:00:00 09-15-2021)'
@@ -40,4 +44,5 @@ else {
     Write-Host '    -we = weekend (12:00:00 09-18-2021)'
     Write-Host '    -n  = sync with ntp'
     Write-Host '    -g = get current time'
+    Write-Host '    -s = sync with computer time'
 }
