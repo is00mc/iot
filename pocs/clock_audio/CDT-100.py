@@ -58,7 +58,9 @@ def send_command(dev, command, port):
 
     UDPClientSocket.sendto(bytesToSend, (dev, port))
 
-    
+    # set time out
+
+    UDPClientSocket.settimeout(3.0)
 
     # recieve message from server
     msgFromServer = UDPClientSocket.recvfrom(bufferSize)
