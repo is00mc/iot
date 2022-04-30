@@ -1,8 +1,6 @@
 import argparse
-from itertools import count
 import socket
 import time
-from timeit import repeat
 
 '''
 FACTORY RESET SEQUENCE
@@ -86,6 +84,7 @@ LEFT = 'mc 01 07\r'
 RIGHT = 'mc 01 06\r'
 OK = 'mc 01 44\r'
 MENU = 'mc 01 43\r'
+EXIT = 'mc 01 5B\r'
 
 
 
@@ -120,7 +119,39 @@ resetSequence = [
 
 initialSetupSequence = [
     # (cmd, wait time in seconds before next command)
-    (MENU, 1),
+    [OK, 5, 1],
+    [RIGHT, 2, 1],
+    [DOWN, 1, 1],
+    [RIGHT, 1, 1],
+    [DOWN, 3, 1],
+    [OK, 1, 1],
+    [ONE, 1, 1],
+    [SIX, 1, 1],
+    [NINE, 1, 1],
+    [OK, 1, 1],
+    [TWO, 1, 1],
+    [FIVE, 1, 1],
+    [FOUR, 1,1 ],
+    [OK, 1 , 1],
+    [ONE, 1, 1],
+    [ZERO, 2, 1],
+    [OK, 1, 1],
+    [FIVE, 1, 1],
+    [OK, 1, 1],
+    [EIGHT, 1, 1],
+    [ZERO, 1, 1],
+    [OK, 1, 1],
+    [OK, 2 , 5],
+    [LEFT, 1, 1],
+    [OK, 1, 1]
+]
+
+commercialMenuSequence = [
+    #[MENU, 13, .3],
+    [ONE, 2, .5],
+    [ZERO, 1, .5],
+    [FIVE, 1, .5],
+    [EXIT, 1, 0]
 ]
 
 
@@ -148,6 +179,7 @@ def commandSequence(dev, sequence, port=PORT):
         count = 1
         while count <= repeatTimes:
             #print(items[0])
+            print(count)
             send_command(dev, cmd, port)
             time.sleep(waitTime)
             count += 1
@@ -167,4 +199,5 @@ elif args.mn:
 elif args.num:
     cmd = numCMD(args.num)
 
-commandSequence(dev, resetSequence)
+commandSequence(dev, initialSetupSequence)
+#send_command(dev, POWER_OFF, PORT)
