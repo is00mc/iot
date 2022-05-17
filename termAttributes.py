@@ -1,4 +1,5 @@
 import ctypes
+import sys
 from termcolor import colored
 from tabulate import tabulate
 
@@ -16,13 +17,14 @@ class TermAttributes:
 
 
     def __init__(self):
-        # enable VT100 support in Windows 10 for colored text in terminal
-        kernel32 = ctypes.WinDLL('kernel32')
-        hStdOut = kernel32.GetStdHandle(-11)
-        mode = ctypes.c_ulong()
-        kernel32.GetConsoleMode(hStdOut, ctypes.byref(mode))
-        mode.value |= 4
-        kernel32.SetConsoleMode(hStdOut, mode)
+        if sys.platform == 'win32':
+            # enable VT100 support in Windows 10 for colored text in terminal
+            kernel32 = ctypes.WinDLL('kernel32')
+            hStdOut = kernel32.GetStdHandle(-11)
+            mode = ctypes.c_ulong()
+            kernel32.GetConsoleMode(hStdOut, ctypes.byref(mode))
+            mode.value |= 4
+            kernel32.SetConsoleMode(hStdOut, mode)
 
 
     def printNotice(self, level, text, color=True):

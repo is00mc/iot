@@ -8,7 +8,7 @@ cur_ip = "0.0.0.0"
 port = 41794
 hostname = socket.gethostname()
 message = b''
-broadcastAddress = '10.35.190.255'
+broadcastAddress = '192.168.25.255'
 
 message = b"\x14\x00\x00\x00\x01\x04\x00\x03\x00\x00\x66\x65\x65\x64" + (b"\x00" * 252)
 
