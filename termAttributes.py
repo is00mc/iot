@@ -1,6 +1,6 @@
 import ctypes
-from itertools import count
 from termcolor import colored
+from tabulate import tabulate
 
 
 class TermAttributes:
@@ -76,6 +76,8 @@ class TermAttributes:
             count += 1
         print(cBorder)
 
-            
+    def createTable(data):
+        if type(data) == list:
+            print(tabulate(data, headers='firstrow', tablefmt='grid'))
 
 termAttr = TermAttributes()
