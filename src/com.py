@@ -16,9 +16,9 @@ def send_tcp(server, data, port, buffer=1024, timeout=3.0):
     return response
 
 
-def send_udp(server, data, port, buffer=1024, timeout=3.0):
+def send_udp(bind_addr, server, data, port, buffer=1024, timeout=3.0):
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-        s.bind(('0.0.0.0', port))
+        s.bind((bind_addr, port))
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         s.sendto(data, (server, port))
