@@ -5,7 +5,7 @@ import termAttributes
 
 # reference: https://github.com/StephenGenusa/Crestron-List-Devices-On-Network/blob/master/List_Crestron_Devices.py
 
-cur_ip = "192.168.25.12"
+cur_ip = "192.168.25.234"
 port = 41794
 hostname = socket.gethostname()
 message = b''
@@ -19,7 +19,7 @@ message = b"\x14"
 def send_command(inp):
     for i in inp:
         data, addr = i
-        if data[0] != cur_ip:
+        if addr[0] != cur_ip:
             devList.append(parse_input(data, addr))
     return devList
 
