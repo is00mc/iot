@@ -2,6 +2,7 @@
 import argparse
 import com
 import crestron.crestron_autodiscovery
+import termAttributes
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-Dc', action='store_true', help='crestron autodiscovery')
@@ -11,7 +12,9 @@ args = parser.parse_args()
 
 
 if args.Dc:
+    termAttributes.termAttr.printNotice("info", "Running Crestron Autodiscovery")
     crestron.crestron_autodiscovery.autodiscovery()
+    termAttributes.termAttr.printNotice("success", "Crestron Autodiscovery Complete")
     if args.o:
         pass
 if args.c:
