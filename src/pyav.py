@@ -1,3 +1,4 @@
+#! /usr/bin/python3
 import argparse
 import com
 import crestron.crestron_autodiscovery

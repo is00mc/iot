@@ -5,7 +5,7 @@ import termAttributes
 
 # reference: https://github.com/StephenGenusa/Crestron-List-Devices-On-Network/blob/master/List_Crestron_Devices.py
 
-cur_ip = "192.168.25.234"
+cur_ip = "192.168.25.12"
 port = 41794
 hostname = socket.gethostname()
 message = b''
@@ -17,9 +17,11 @@ message = b"\x14"
 
 
 def send_command(inp):
-    addr, data = inp
-    if data[0] != cur_ip:
-        devList.append(parse_input(data, addr))
+    for i in inp:
+        data, addr = i
+        if data[0] != cur_ip:
+            devList.append(parse_input(data, addr))
+    return devList
 
 def parse_input(data, addr):
     ipAddress = addr[0]
@@ -37,4 +39,5 @@ def printData(data):
     termAttributes.TermAttributes.createTable(data)
 def autodiscovery():
     termAttributes.termAttr.printTitle('Crestron')
-    print(com.send_udp(cur_ip, broadcastAddress, message, port))
+    x = send_command(com.send_udp(cur_ip, broadcastAddress, message, port))
+    printData(x)
