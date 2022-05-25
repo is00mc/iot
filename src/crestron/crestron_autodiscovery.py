@@ -18,9 +18,8 @@ message = b"\x14"
 
 def send_command(inp):
     addr, data = inp
-    while True:
-        if data[0] != cur_ip:
-            devList.append(parse_input(data, addr))
+    if data[0] != cur_ip:
+        devList.append(parse_input(data, addr))
 
 def parse_input(data, addr):
     ipAddress = addr[0]
@@ -38,4 +37,4 @@ def printData(data):
     termAttributes.TermAttributes.createTable(data)
 def autodiscovery():
     termAttributes.termAttr.printTitle('Crestron')
-    printData(send_command(com.send_udp(cur_ip, broadcastAddress, message, port)))
+    print(com.send_udp(cur_ip, broadcastAddress, message, port))
