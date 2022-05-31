@@ -1,22 +1,20 @@
 import com
-import socket
+import netTools
 import re
+import socket
 import termAttributes
 
 # reference: https://github.com/StephenGenusa/Crestron-List-Devices-On-Network/blob/master/List_Crestron_Devices.py
 
-cur_ip = "192.168.25.234"
 port = 41794
 hostname = socket.gethostname()
 message = b''
-broadcastAddress = '192.168.25.255'
 devList = [['IP', 'Hostname', 'Model', 'Version']]
 
-#message = b"\x14\x00\x00\x00\x01\x04\x00\x03\x00\x00\x66\x65\x65\x64" + (b"\x00" * 252)
-message = b"\x14"
+message = b"\x14\x00\x00\x00\x01\x04\x00\x03\x00\x00\x66\x65\x65\x64" + (b"\x00" * 252)
 
 
-def send_command(inp):
+def send_command(cur_ip, inp):
     for i in inp:
         data, addr = i
         if addr[0] != cur_ip:
@@ -37,6 +35,15 @@ def parse_input(data, addr):
 
 def printData(data):
     termAttributes.TermAttributes.createTable(data)
-def autodiscovery():
-    x = send_command(com.send_udp(cur_ip, broadcastAddress, message, port))
+
+def autodiscovery(chosen_adapter):
+    cur_ip = ''
+    broadcastAddress = ''
+    adapters = netTools.get_adapter_info()
+    for adapter in adapters:
+        for k, v in adapter.items():
+            if v  == chosen_adapter:       
+                cur_ip = adapter["ipv4"]
+                broadcastAddress = adapter["broadcast"]
+    x = send_command(cur_ip, com.send_udp(cur_ip, broadcastAddress, message, port))
     printData(x)
