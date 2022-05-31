@@ -5,7 +5,7 @@ import termAttributes
 
 # reference: https://github.com/StephenGenusa/Crestron-List-Devices-On-Network/blob/master/List_Crestron_Devices.py
 
-cur_ip = "192.168.25.20"
+cur_ip = "192.168.25.234"
 port = 41794
 hostname = socket.gethostname()
 message = b''
