@@ -1,5 +1,5 @@
 __pycache__
-production_env/
+production_venv/
 test_env/
 venv/
 .obsidian/
