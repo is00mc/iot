@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <link type="image/x-icon" href="favicon.ico" rel="shortcut icon"></link>
+    <title>HD-MD4x2-4K-E</title>
+    <link href="css/styles.css" rel="stylesheet" media="screen">
+    <script type="text/javascript" src="js/jquerymin.js"></script>
+	<script type="text/javascript" src="js/jqueryblockUI.js"></script>
+    <script type="text/javascript" src="js/ajaxfileupload.js"></script>
+    <script type="text/javascript" src="js/top.js"></script>
+    <script type="text/javascript" src="js/creat.js"></script>
+    <script>
+		model='HD-MD4x2-4K-E';seriv='22810770';firmv='1.0.0.2153';ip_mode=0;host='NYCHS-AV-YELSWT';domain='crestron.crestron.com';dns='8.8.8.8';ip='10.110.164.25';sn='255.255.255.0';gw='10.110.164.1';mac='00:10:7f:ce:a6:20';login_ur=0;
+		document.onmousedown = ReCalculate;
+		document.onmousemove = ReCalculate;
+		ReCalculate();
+		for(var i=0; i<menu_id.length; i++)
+			refresh_page(menu_id[i],1);
+	</script>
+</head>
+<body>
+	<div id="header">
+    	<img id="header_logo" src="images/logo.png" alt="">
+    </div>
+    <div id="i_menu" class="posit"></div>
+    <div id="i_page" class="posit"></div>
+	<script type="text/javascript">
+		nowpage=getCookie("page");
+		window.onload = change_borw;
+		$(window).resize(function(){
+			change_borw();
+		});
+		if((login_ur>0)&&(login_ur<5))
+		{
+		creat_menu();
+			addWidth(nowpage);
+		}else{
+			creat_login();	
+		}
+    </script>
+</body>
+</html>
