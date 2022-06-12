@@ -40,16 +40,18 @@ LEFT
 OK
 '''
 
+cmd = ''
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-u', action='store_true')
-parser.add_argument('-d', action='store_true')
-parser.add_argument('-l', action='store_true')
-parser.add_argument('-r', action='store_true')
-parser.add_argument('-ok', action='store_true')
-parser.add_argument('-mn', action='store_true')
-parser.add_argument('-num')
+parser.add_argument('-u', action='store_true', help='send up command')
+parser.add_argument('-d', action='store_true', help='send down command')
+parser.add_argument('-l', action='store_true', help='send left command')
+parser.add_argument('-r', action='store_true', help='send right command')
+parser.add_argument('-ok', action='store_true', help='send ok command')
+parser.add_argument('-mn', action='store_true', help='send menu command')
+parser.add_argument('-num', help='input a number')
 parser.add_argument('-dev', help='device ip')
+parser.add_argument('-s', help='start sequence - OPTIONS - reset, setup, commercial')
 
 args = parser.parse_args()
 
@@ -199,5 +201,15 @@ elif args.mn:
 elif args.num:
     cmd = numCMD(args.num)
 
-commandSequence(dev, initialSetupSequence)
-#send_command(dev, POWER_OFF, PORT)
+if cmd:
+    send_command(dev, cmd, PORT)
+
+if args.s:
+    if args.s == 'reset':
+        commandSequence(args.dev, resetSequence)
+    elif args.s == 'setup':
+        commandSequence(args.dev, initialSetupSequence)
+    elif args.s == 'commercial':
+        commandSequence(args.dev, commercialMenuSequence)
+    else:
+        print('unknown sequence')

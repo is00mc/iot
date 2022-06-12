@@ -19,7 +19,7 @@
                     <version>37</version>
                 </applicationDescriptor>
                 <HcapDescriptor>
-                    <url>http://169.254.100.5:80/procentric/application/app_launcher.zip</url>
+                    <url>http://192.168.25.20:80/procentric/application/app_launcher.zip</url>
                     <applicationStructure>
                         <baseDirectory>/</baseDirectory>
                         <classpathExtension>/</classpathExtension>

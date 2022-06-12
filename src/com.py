@@ -28,3 +28,20 @@ def send_udp(bind_addr, server, data, port, buffer=1024, timeout=3.0):
                 responses.append(s.recvfrom(buffer))
         except socket.timeout:
             return responses
+
+def main():
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--protocol')
+    parser.add_argument('-s', '--server')
+    parser.add_argument('-P', '--port')
+    parser.add_argument('-d', '--data')
+
+    args = parser.parse_args()
+
+    if args.protocol == 'tcp':
+        send_tcp(args.server, args.data, args.port)
+
+
+if __name__ == "__main__":
+    main()
