@@ -2,44 +2,6 @@ import argparse
 import socket
 import time
 
-'''
-FACTORY RESET SEQUENCE
-
-MENU
-DOWN X 3
-OK
-DOWN X 3
-1 X 6
-0
-RIGHT
-OK
-'''
-
-'''
-SETUP SEQUENCE
-
-OK X 5
-RIGHT X 2
-DOWN
-RIGHT
-DOWN X 3
-OK
-169
-OK
-254
-OK
-100
-OK
-5 - HAVE SERVER ADDRESS AS FUNCTION PARAMETER
-OK
-80
-OK
-OK
-WAIT FOR USER INPUT?
-LEFT
-OK
-'''
-
 cmd = ''
 
 parser = argparse.ArgumentParser()
@@ -51,17 +13,29 @@ parser.add_argument('-ok', action='store_true', help='send ok command')
 parser.add_argument('-mn', action='store_true', help='send menu command')
 parser.add_argument('-num', help='input a number')
 parser.add_argument('-dev', help='device ip')
-parser.add_argument('-s', help='start sequence - OPTIONS - reset, setup, commercial')
+parser.add_argument('-s', help='start sequence - OPTIONS - reset, setup1, setup2, commercial')
+parser.add_argument('-off', action='store_true', help='power off')
+parser.add_argument('--server', help='media server address')
+parser.add_argument('-a', action='store_true', help='set ascpect ration to 16:9')
+parser.add_argument('-i', help='input file for list of devices to configure')
+
 
 args = parser.parse_args()
+devs = []
 
-dev = args.dev
-
-
+if args.dev:
+    devs.append(args.dev)
+if args.i:
+    with open(args.i, 'r') as reader:
+        lines = reader.readlines()
+        for line in lines:
+            line = line.strip()
+            if not line.startswith('#') and line:
+                devs.append(line)
 
 PORT = 9761
 POWER_ON = 'ka 01 01\r'
-POWER_OFF = 'ka 01 00\n'
+POWER_OFF = 'ka 01 00\r'
 REBOOT = 'ka 01 02\r'
 PM_NETWORK_READY = 'sn 01 0c 05\r'
 NETAPPLY = 'sn 01 82 80\r'
@@ -87,6 +61,7 @@ RIGHT = 'mc 01 06\r'
 OK = 'mc 01 44\r'
 MENU = 'mc 01 43\r'
 EXIT = 'mc 01 5B\r'
+ASPECT = 'kc 01 02\r'
 
 
 
@@ -112,47 +87,58 @@ resetSequence = [
     [DOWN, 3, 1], # go down to advanced menu
     [OK, 1, 5], # enter advanced menu and wait 5 seconds for it to popup
     [DOWN, 3, 1], # go down to general
-    [ONE, 5, .5], # press 1 5 times quickly
+    [ONE, 5, .1], # press 1 5 times quickly
     [ONE, 1, 2], # press 1 a last time and wait for the hidden page to popup
     [ZERO, 1, 2], # press zero for in stop
     [RIGHT, 1, 1], # go right to say yes to confirmation
     [OK, 1, 0] # press ok to confirm in stop
 ]
 
-initialSetupSequence = [
+initialSetupSequence1 = [
     # (cmd, wait time in seconds before next command)
     [OK, 5, 1],
-    [RIGHT, 2, 1],
-    [DOWN, 1, 1],
-    [RIGHT, 1, 1],
-    [DOWN, 3, 1],
+    [OK, 1, 3],
+    [OK, 1, .1],
+
+]
+
+
+initialSetupSequence2 = [
+    # (cmd, wait time in seconds before next command)
+    [DOWN, 4, 1],
     [OK, 1, 1],
-    [ONE, 1, 1],
-    [SIX, 1, 1],
-    [NINE, 1, 1],
-    [OK, 1, 1],
-    [TWO, 1, 1],
-    [FIVE, 1, 1],
-    [FOUR, 1,1 ],
-    [OK, 1 , 1],
-    [ONE, 1, 1],
-    [ZERO, 2, 1],
-    [OK, 1, 1],
-    [FIVE, 1, 1],
+    # insert addrToIR
+    #[OK, 1 , 1],
     [OK, 1, 1],
     [EIGHT, 1, 1],
     [ZERO, 1, 1],
     [OK, 1, 1],
-    [OK, 2 , 5],
+    [OK, 2 , 10],
     [LEFT, 1, 1],
     [OK, 1, 1]
 ]
 
+
+def addrToIR(addr):
+    IR = []
+    insert = 2
+    for ch in addr:
+        if ch == '.':
+            IR.append([OK, 1, 1])
+        else:
+            IR.append([numCMD(int(ch)), 1, 1])
+    for i in IR:
+        initialSetupSequence2.insert(insert, i)
+        insert += 1
+    return IR
+
+
 commercialMenuSequence = [
-    #[MENU, 13, .3],
-    [ONE, 2, .5],
-    [ZERO, 1, .5],
-    [FIVE, 1, .5],
+    [MENU, 11, .1],
+    [NINE, 1, .5],
+    [EIGHT, 1, .5],
+    [SEVEN, 1, .5],
+    [SIX, 1, .5],
     [EXIT, 1, 0]
 ]
 
@@ -173,17 +159,16 @@ def send_command(dev, command, port):
         return data.decode()
 
 
-def commandSequence(dev, sequence, port=PORT):
+def commandSequence(devs, sequence, port=PORT):
     for items in sequence:
         cmd = items[0]
         repeatTimes = items[1]
-        waitTime = items[2]
+        waitTime = items[2]/len(devs)
         count = 1
         while count <= repeatTimes:
-            #print(items[0])
-            print(count)
-            send_command(dev, cmd, port)
-            time.sleep(waitTime)
+            for dev in devs:
+                send_command(dev, cmd, port)
+                time.sleep(waitTime)
             count += 1
 
 if args.u:
@@ -200,16 +185,28 @@ elif args.mn:
     cmd = MENU
 elif args.num:
     cmd = numCMD(args.num)
+elif args.a:
+    cmd = ASPECT
+elif args.off:
+    cmd = POWER_OFF
 
 if cmd:
-    send_command(dev, cmd, PORT)
+    for d in devs:
+        send_command(d, cmd, PORT)
 
 if args.s:
     if args.s == 'reset':
-        commandSequence(args.dev, resetSequence)
-    elif args.s == 'setup':
-        commandSequence(args.dev, initialSetupSequence)
+        commandSequence(devs, resetSequence)
+    elif args.s == 'setup1':
+        commandSequence(devs, initialSetupSequence1)
+        print('manually set Pro:Centric Mode to html')
+        print('and Media Type to IP')
+        print('put cursor on Pro:Centric Mode (html)')
+        print('then continue with setup sequence 2 ( -s setup2 --server <server address>)')
+    elif args.s == 'setup2':
+        addrToIR(args.server)
+        commandSequence(devs, initialSetupSequence2)
     elif args.s == 'commercial':
-        commandSequence(args.dev, commercialMenuSequence)
+        commandSequence(devs, commercialMenuSequence)
     else:
         print('unknown sequence')
